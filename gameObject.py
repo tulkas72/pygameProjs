@@ -61,6 +61,33 @@ class Bola(pygame.sprite.Sprite):
         self.rect.centery = HEIGHT // 2
         self.speed = [0.5, -0.5]
 
+    def actualizar(self, time):
+        """[summary] La linea 1 define el método, recibe el parámetro self (como siempre) y el parámetro time que es
+        el tiempo transcurrido, más adelante lo explicamos.
+
+        La línea 2 y 3 usa la física básica de espacio es igual a la velocidad por el tiempo (e = v*t), por tanto
+        establecemos que el centro de nuestro rectangulo en x es el valor que tenía (self.rect.centerx) más (+=) la
+        valocidad a la que se mueve en el eje x (self.speed[0]) por (*) el tiempo transcurrido (time). Lo mismo se
+        aplica al eje y en la línea 3.
+
+        La linea 4, 5 y 6 establece que si la parte izquierda del rectángulo de la bola es menor o igual a 0 ó mayor
+        o igual a el ancho de la pantalla (WIDTH), es decir,  que este en el extremo izquierdo o derecho,
+        la velocidad de x (self.speed[0]) cambie de signo (-self.speed[0]) con esto conseguiremos que vaya hacia el
+        otro lado.
+
+        Las líneas 7, 8 y 9 es lo mismo pero en el eje y como se puede ver.
+
+        Args:
+            time ([type]): [description]
+        """
+        self.rect.centerx += int(self.speed[0] * time)
+        self.rect.centery += int(self.speed[1] * time)
+        if self.rect.left <= 0 or self.rect.right >= WIDTH:
+            self.speed[0] = -self.speed[0]
+            self.rect.centerx += int(self.speed[0] * time)
+        if self.rect.top <= 0 or self.rect.bottom >= HEIGHT:
+            self.speed[1] = -self.speed[1]
+            self.rect.centery += self.speed[1] * time
 
 # ---------------------------------------------------------------------
 
@@ -90,14 +117,24 @@ def main():
     background_image = load_image('images/fondo_pong.png')  # cargar imagen
     bola = Bola()
 
+    # Ahora vamos a crear un reloj que controle el tiempo del juego, esto es
+    # importante para el movimiento, pues sabemos cuanto tiempo a pasado desde
+    # la ultima actualización de la pelota y con ello poder situarla en el espacio.
+    clock = pygame.time.Clock()
+
     while True:  # bucle de juego Game Loop
+        # Ahora necesitamos saber cuanto tiempo pasa cada vez que se ejecuta
+        # una interección del bucle, para ello dentro del bucle ponemos como primera línea:
+        #60 nos da el "framerate"
+        time=clock.tick(60)
         for eventos in pygame.event.get():  # manejo de eventos
             if eventos.type == QUIT:  # pygame.locals.QUIT
                 pygame.quit()
                 sys.exit(0)
 
-        # ponerla en la ventana, en la posición x=0,y=0
-        screen.blit(background_image, (0, 0))
+
+        bola.actualizar(time) #actualizar la posición de la bola antes de repintar
+        screen.blit(background_image, (0, 0)) # ponerla en la ventana, en la posición x=0,y=0
         screen.blit(bola.image, bola.rect)
         pygame.display.flip()  # actualiza la pantalla para que se muestre la imagen
     return 0
