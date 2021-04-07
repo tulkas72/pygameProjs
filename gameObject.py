@@ -61,7 +61,7 @@ class Bola(pygame.sprite.Sprite):
         self.rect.centery = HEIGHT // 2
         self.speed = [0.5, -0.5]
 
-    def actualizar(self, time):
+    def actualizar(self, time, pala_jug, pala_cpu):
         """[summary] La linea 1 define el método, recibe el parámetro self (como siempre) y el parámetro time que es
         el tiempo transcurrido, más adelante lo explicamos.
 
@@ -77,9 +77,22 @@ class Bola(pygame.sprite.Sprite):
 
         Las líneas 7, 8 y 9 es lo mismo pero en el eje y como se puede ver.
 
+        Como vemos todo igual, salvo que ahora recibe un parámetro más que es pala_jug por el que pasaremos el Sprite
+        con el que queremos comprobar si colisiona, en este caso pala_jug.
+
+        Luego al final añadimos 3 líneas con un nuevo condicional con el que comprobamos si la pelota choca contra la
+        pala, en caso afirmativo cambiamos la dirección de la bola como cuando choca con el borde izquierdo de la
+        ventana
+
+        Como podemos ver añadimos otro párametro al método pala_cpu que servirá para añadirle el Sprite pala_cpu como
+        hicimos con pala_jug y añadimos las tres últimas líneas que son idénticas a las anteriores salvo que ahora
+        para pala_cpu.
+
         Args:
             time ([type]): [description]
+            pala_jug([type]): [description]
         """
+
         self.rect.centerx += int(self.speed[0] * time)
         self.rect.centery += int(self.speed[1] * time)
         if self.rect.left <= 0 or self.rect.right >= WIDTH:
@@ -88,6 +101,14 @@ class Bola(pygame.sprite.Sprite):
         if self.rect.top <= 0 or self.rect.bottom >= HEIGHT:
             self.speed[1] = -self.speed[1]
             self.rect.centery += self.speed[1] * time
+        # Saber si un Sprite colisiona con otro es muy fácil en Python, basta con ejecutar el siguiente método:
+        if pygame.sprite.collide_rect(self, pala_jug):
+            self.speed[0] = -self.speed[0]
+            self.rect.centerx += self.speed[0] * time
+        #añadida colisión con pala de CPU
+        if pygame.sprite.collide_rect(self, pala_cpu):
+            self.speed[0] = -self.speed[0]
+            self.rect.centerx += self.speed[0] * time
 
 
 class Pala(pygame.sprite.Sprite):
@@ -98,6 +119,7 @@ class Pala(pygame.sprite.Sprite):
 
     Otro cambio es la velocidad, como la pala del Pong solo se mueve en el eje y no definimos velocidad para el eje x.
     """
+
     def __init__(self, x):
         pygame.sprite.Sprite.__init__(self)
         self.image = load_image("images/pala.png")
@@ -132,6 +154,34 @@ class Pala(pygame.sprite.Sprite):
         if self.rect.bottom <= HEIGHT:
             if keys[K_DOWN]:
                 self.rect.centery += self.speed * time
+
+    def ia(self, time, ball):
+        """
+        En la línea 1 vemos que recibe como siempre self y time y aparte recibe ball que es la bola, es necesario
+        pues el método necesita conocer donde está la bola.
+
+        En la línea 2 comprobamos que ball.speed[0] >= 0, es decir, que la velocidad en el eje x de la pelota sea
+        positiva, es decir, que la pelota se este moviendo hacia la derecha (hacia la pala de la cpu) y tambien
+        comprueba que ball.rect.centerx >= WIDTH/2 es decir que el centro x de la pelota sea mayor o igual que el
+        centro del tablero, es decir, que la pelota este en el campo de la cpu.
+
+        Por tanto la línea 2 es un condicional que comprueba que la pelota vaya hacia donde está la pala de la cpu y
+        que este en su campo, sino, que no se mueva. Esto se hace para que la CPU no sea invencible y no llegue a
+        todas las pelotas.
+
+        La línea 3 comprueba si el centery de la pelota es menor que el centery de la bola, es decir si la pala está
+        más arriba que que la pelota en cullo caso, ejecuta la línea 4 que mueve la pala de la cpu hacia abajo.
+
+        Las líneas 5 y 6 hacen lo mismo, pero a la inversa como se ve a simple vista.
+        :param time:
+        :param ball:
+        :return:
+        """
+        if ball.speed[0] >= 0 and ball.rect.centerx >= WIDTH / 2:
+            if self.rect.centery < ball.rect.centery:
+                self.rect.centery += self.speed * time
+            if self.rect.centery > ball.rect.centery:
+                self.rect.centery -= self.speed * time
 # ---------------------------------------------------------------------
 
 # Funciones
@@ -160,6 +210,7 @@ def main():
     background_image = load_image('images/fondo_pong.png')  # cargar imagen
     bola = Bola()
     pala_jug = Pala(30)
+    pala_cpu = Pala(WIDTH - 30) #pala del ordenador a 30 píxeles del borde
 
     # Ahora vamos a crear un reloj que controle el tiempo del juego, esto es
     # importante para el movimiento, pues sabemos cuanto tiempo a pasado desde
@@ -169,20 +220,23 @@ def main():
     while True:  # bucle de juego Game Loop
         # Ahora necesitamos saber cuanto tiempo pasa cada vez que se ejecuta
         # una interección del bucle, para ello dentro del bucle ponemos como primera línea:
-        #60 nos da el "framerate"
-        time=clock.tick(60)
-        keys = pygame.key.get_pressed() # controlar pulsación de teclas
+        # 60 nos da el "framerate"
+        time = clock.tick(60)
+        keys = pygame.key.get_pressed()  # controlar pulsación de teclas
         for eventos in pygame.event.get():  # manejo de eventos
             if eventos.type == QUIT:  # pygame.locals.QUIT
                 pygame.quit()
                 sys.exit(0)
 
-
-        bola.actualizar(time) #actualizar la posición de la bola antes de repintar
+        # actualizar la posición de la bola, pala del jugador y de la cpu antes de repintar
+        bola.actualizar(time, pala_jug, pala_cpu)
         pala_jug.mover(time, keys)
-        screen.blit(background_image, (0, 0)) # ponerla en la ventana, en la posición x=0,y=0
-        screen.blit(bola.image, bola.rect) #dibujar la bola
-        screen.blit(pala_jug.image, pala_jug.rect)#dibujar pala del jugador
+        pala_cpu.ia(time, bola)
+
+        screen.blit(background_image, (0, 0))# ponerla en la ventana, en la posición x=0,y=0
+        screen.blit(bola.image, bola.rect)  # dibujar la bola
+        screen.blit(pala_jug.image, pala_jug.rect)  # dibujar pala del jugador
+        screen.blit(pala_cpu.image, pala_cpu.rect)  # dibujar pala de la cpu
         pygame.display.flip()  # actualiza la pantalla para que se muestre la imagen
     return 0
 
