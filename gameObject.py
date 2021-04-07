@@ -61,7 +61,7 @@ class Bola(pygame.sprite.Sprite):
         self.rect.centery = HEIGHT // 2
         self.speed = [0.5, -0.5]
 
-    def actualizar(self, time, pala_jug, pala_cpu, puntos):
+    def actualizar(self, time, palas, puntos):
         """[summary] La linea 1 define el método, recibe el parámetro self (como siempre) y el parámetro time que es
         el tiempo transcurrido, más adelante lo explicamos.
 
@@ -99,7 +99,7 @@ class Bola(pygame.sprite.Sprite):
 
         Args:
             time ([type]): [description]
-            pala_jug([type]): [description]
+            palas([type]): [description]
         """
 
         self.rect.centerx += int(self.speed[0] * time)
@@ -118,14 +118,16 @@ class Bola(pygame.sprite.Sprite):
             self.rect.centery += self.speed[1] * time
 
         # Saber si un Sprite colisiona con otro es muy fácil en Python, basta con ejecutar el siguiente método:
-        if pygame.sprite.collide_rect(self, pala_jug):
-            self.speed[0] = -self.speed[0]
-            self.rect.centerx += self.speed[0] * time
+        # Comprueba si choca con cualquier pala que haya en el juego; se pasan como una lista de palas
+        for pala in palas:
+            if pygame.sprite.collide_rect(self, pala):
+                self.speed[0] = -self.speed[0]
+                self.rect.centerx += self.speed[0] * time
 
-        #añadida colisión con pala de CPU
-        if pygame.sprite.collide_rect(self, pala_cpu):
-            self.speed[0] = -self.speed[0]
-            self.rect.centerx += self.speed[0] * time
+        # #añadida colisión con pala de CPU
+        # if pygame.sprite.collide_rect(self, pala_cpu):
+        #     self.speed[0] = -self.speed[0]
+        #     self.rect.centerx += self.speed[0] * time
 
         return puntos
 
@@ -189,23 +191,31 @@ class Pala(pygame.sprite.Sprite):
         todas las pelotas.
 
         La línea 3 comprueba si el centery de la pelota es menor que el centery de la bola, es decir si la pala está
-        más arriba que que la pelota en cullo caso, ejecuta la línea 4 que mueve la pala de la cpu hacia abajo.
+        más arriba que que la pelota en cuyo caso, ejecuta la línea 4 que mueve la pala de la cpu hacia abajo.
 
         Las líneas 5 y 6 hacen lo mismo, pero a la inversa como se ve a simple vista.
         :param time:
         :param ball:
         :return:
         """
-        if ball.speed[0] >= 0 and ball.rect.centerx >= WIDTH / 2:
+        import random
+        from operator import ge, le
+        op = None
+        if self.rect.centerx > WIDTH/2:
+            op = ge
+        else:
+            op = le
+
+        #  if ball.speed[0] >= 0 and ball.rect.centerx >= WIDTH / 2:
+        if op(ball.speed[0], 0) and op(ball.rect.centerx, WIDTH/2):
             if self.rect.centery < ball.rect.centery:
-                self.rect.centery += self.speed * time
+                self.rect.centery += self.speed * time - random.randint(0,7) #atontar un poco a la "IA"
             if self.rect.centery > ball.rect.centery:
-                self.rect.centery -= self.speed * time
+                self.rect.centery -= self.speed * time + random.randint(0,7) #atontar un poco a la "IA"
 # ---------------------------------------------------------------------
 
 # Funciones
 # ---------------------------------------------------------------------
-
 
 def load_image(filename, transparent=False):
     try:
@@ -263,7 +273,7 @@ def main():
     bola = Bola()
     pala_jug = Pala(30)
     pala_cpu = Pala(WIDTH - 30) #pala del ordenador a 30 píxeles del borde
-
+    # pala_cpu2 = Pala(WIDTH / 2)
     # Ahora vamos a crear un reloj que controle el tiempo del juego, esto es
     # importante para el movimiento, pues sabemos cuanto tiempo a pasado desde
     # la ultima actualización de la pelota y con ello poder situarla en el espacio.
@@ -272,9 +282,9 @@ def main():
     puntos = [0, 0]
 
     while True:  # bucle de juego Game Loop
-        # Ahora necesitamos saber cuanto tiempo pasa cada vez que se ejecuta
-        # una interección del bucle, para ello dentro del bucle ponemos como primera línea:
-        # 60 nos da el "framerate"
+        # Ahora necesitamos saber cuánto tiempo pasa cada vez que se ejecuta
+        # una interacción del bucle, para ello dentro del bucle ponemos como primera línea:
+        # (60 nos da el "framerate")
         time = clock.tick(60)
         keys = pygame.key.get_pressed()  # controlar pulsación de teclas
         for eventos in pygame.event.get():  # manejo de eventos
@@ -283,10 +293,16 @@ def main():
                 sys.exit(0)
 
         # actualizar la posición de la bola, pala del jugador y de la cpu antes de repintar
-        #actualizar también los puntos
-        puntos=bola.actualizar(time, pala_jug, pala_cpu, puntos)
-        pala_jug.mover(time, keys)
+        # actualizar también los puntos
+
+        palas = [pala_jug, pala_cpu] #, pala_cpu2
+        puntos = bola.actualizar(time, palas, puntos)
+        #pala_jug.mover(time, keys)
+        pala_jug.ia(time, bola)
         pala_cpu.ia(time, bola)
+        # pala_cpu2.ia(time,bola)
+
+        #pala_cpu2.ia(time, bola)
 
         # Con la función texto() poner texto es muy fácil, vamos a utilizarla para mostrar nuestras puntuaciones,
         # añadimos las siguientes líneas en el bucle del juego:
@@ -301,13 +317,11 @@ def main():
         #El otro Sprite exactamente lo mismo, pero para los puntos de la CPU y centrado en el campo de la CPU el posx
         #(WIDTH-WIDTH/4).
 
-
-        screen.blit(background_image, (0, 0))# ponerla en la ventana, en la posición x=0,y=0
-
-
+        screen.blit(background_image, (0, 0))  # ponerla en la ventana, en la posición x=0,y=0
         screen.blit(bola.image, bola.rect)  # dibujar la bola
         screen.blit(pala_jug.image, pala_jug.rect)  # dibujar pala del jugador
         screen.blit(pala_cpu.image, pala_cpu.rect)  # dibujar pala de la cpu
+        # screen.blit(pala_cpu2.image, pala_cpu2.rect)
 
         # Ponemos los sprites del marcador ¿por qué la pelota pasa por debajo?
         screen.blit(p_jug, p_jug_rect)

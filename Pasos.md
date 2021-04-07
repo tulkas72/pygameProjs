@@ -18,3 +18,7 @@
     Pygame XIII: - Que la pala del jugador se alargue si no es muy hábil o
                  - Que la bola vaya más despacio cuando se mueva hacia él
                  - O ambas
+    
+    Pygame XIV: - Hacer jugar dos IA una contra otra.
+    Pygame XVI: - Independizar la PALA del JUGADOR de la pala de la CPU
+    
