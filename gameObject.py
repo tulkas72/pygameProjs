@@ -218,6 +218,39 @@ def load_image(filename, transparent=False):
         image.set_colorkey(colour, pygame.RLEACCEL)
     return image
 
+def texto(texto, posx, posy, color=(255, 255, 255)):
+    """
+    En la línea 1 creamos la función, vemos que recibe 4 parámetros: texto que debe ser una string, posx y posy que
+    serán las coordenadas del centro de nuestro texto y color que es una tupla con los valores RGB, color es opcional
+    y si no se define, por defecto será blanco.
+
+    La línea 2 asigna una tipografía a la variable fuente como vemos lo hacemos con pygame.font.Font() al que le
+    pasamos como primer parámetro la ruta de la tipografía que queremos usar y como segundo el tamaño de la tipografía.
+
+    En la linea 3 creamos la variable salida asignandole pygame.font.Font.render() este método lo que hace es
+    convertir un texto en un Sprite, como vemos como primer parámetro recibe una fuente tipográfica, le pasamos la
+    creada en la línea anterior, como segundo recibe el texto a mostrar, el tercer parámetro es el antialias y puede
+    ser verdadero o falso (con o sin antialias), por último recibe el color.
+
+    En la línea 4 obtenemos el rect como si de un Sprite más se tratare y lo almacenamos en salida_rect.
+
+    Las líneas 5 y 6 modifican el centro del Sprite en función de los valores posx y posy.
+
+    Por último la línea 7 retorna una tupla con el Sprite y su correspondiente rect. Ojo a la ahora de utlizarla,
+    recordad que retorna dos valores y no uno.
+
+    :param texto:
+    :param posx:
+    :param posy:
+    :param color:
+    :return:
+    """
+    fuente = pygame.font.Font("images/DroidSans.ttf", 25)
+    salida = pygame.font.Font.render(fuente, texto, 1, color)
+    salida_rect = salida.get_rect()
+    salida_rect.centerx = posx
+    salida_rect.centery = posy
+    return salida, salida_rect
 
 # ---------------------------------------------------------------------
 
@@ -255,11 +288,30 @@ def main():
         pala_jug.mover(time, keys)
         pala_cpu.ia(time, bola)
 
+        # Con la función texto() poner texto es muy fácil, vamos a utilizarla para mostrar nuestras puntuaciones,
+        # añadimos las siguientes líneas en el bucle del juego:
+
+        p_jug, p_jug_rect = texto(str(puntos[0]), WIDTH / 4, 40)
+        p_cpu, p_cpu_rect = texto(str(puntos[1]), WIDTH - WIDTH / 4, 40)
+
+        #Las dos líneas anteriores nos crea dos Sprites con sus respectivos rects. El primero recibe como texto puntos[0], es decir los
+        #puntos del jugador (ojo con la conversión str(), recodad que debe de ser una string), como parámetro posx
+        #recibe WIDTH/4 es decir la WIDTH/2/2 que es la mitad de la mitad de la pantalla (para centrarlo en el campo
+        #del jugador) y como parámetro posy he situado a 40px del norde superior.
+        #El otro Sprite exactamente lo mismo, pero para los puntos de la CPU y centrado en el campo de la CPU el posx
+        #(WIDTH-WIDTH/4).
+
+
         screen.blit(background_image, (0, 0))# ponerla en la ventana, en la posición x=0,y=0
+
+
         screen.blit(bola.image, bola.rect)  # dibujar la bola
         screen.blit(pala_jug.image, pala_jug.rect)  # dibujar pala del jugador
         screen.blit(pala_cpu.image, pala_cpu.rect)  # dibujar pala de la cpu
         pygame.display.flip()  # actualiza la pantalla para que se muestre la imagen
+        # Ponemos los sprites del marcador ¿por qué la pelota pasa por debajo?
+        screen.blit(p_jug, p_jug_rect)
+        screen.blit(p_cpu, p_cpu_rect)
     return 0
 
 
