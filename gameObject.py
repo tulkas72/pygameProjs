@@ -61,7 +61,7 @@ class Bola(pygame.sprite.Sprite):
         self.rect.centery = HEIGHT // 2
         self.speed = [0.5, -0.5]
 
-    def actualizar(self, time, pala_jug, pala_cpu):
+    def actualizar(self, time, pala_jug, pala_cpu, puntos):
         """[summary] La linea 1 define el método, recibe el parámetro self (como siempre) y el parámetro time que es
         el tiempo transcurrido, más adelante lo explicamos.
 
@@ -83,10 +83,19 @@ class Bola(pygame.sprite.Sprite):
         Luego al final añadimos 3 líneas con un nuevo condicional con el que comprobamos si la pelota choca contra la
         pala, en caso afirmativo cambiamos la dirección de la bola como cuando choca con el borde izquierdo de la
         ventana
-
+        --
         Como podemos ver añadimos otro párametro al método pala_cpu que servirá para añadirle el Sprite pala_cpu como
         hicimos con pala_jug y añadimos las tres últimas líneas que son idénticas a las anteriores salvo que ahora
         para pala_cpu.
+        ---
+        Como vemos le añadimos un nuevo parámetro llamado puntos, puntos es una lista que contiene los puntos de los
+        dos jugadores en el el puntos[0] los puntos del jugador y en el puntos[1] los puntos de la cpu.
+
+        Luego añadimos las líneas de la 5 a la 8 que controlan si la parte izquierda de la pelota (línea 5) toca el
+        el borde izquierdo de la ventana en cuyo caso aumenta puntos[1] (el marcador de la cpu) en 1 (línea 6). La
+        líneas 7 y 8 hacen lo mismo, pero a la inversa.
+
+        Por último al final del método se retorna puntos, necesario para almacenarla en una variable.
 
         Args:
             time ([type]): [description]
@@ -95,20 +104,30 @@ class Bola(pygame.sprite.Sprite):
 
         self.rect.centerx += int(self.speed[0] * time)
         self.rect.centery += int(self.speed[1] * time)
+        if self.rect.left <= 0:
+            puntos[1] += 1
+        if self.rect.right >= WIDTH:
+            puntos[0] += 1
+
         if self.rect.left <= 0 or self.rect.right >= WIDTH:
             self.speed[0] = -self.speed[0]
             self.rect.centerx += int(self.speed[0] * time)
+
         if self.rect.top <= 0 or self.rect.bottom >= HEIGHT:
             self.speed[1] = -self.speed[1]
             self.rect.centery += self.speed[1] * time
+
         # Saber si un Sprite colisiona con otro es muy fácil en Python, basta con ejecutar el siguiente método:
         if pygame.sprite.collide_rect(self, pala_jug):
             self.speed[0] = -self.speed[0]
             self.rect.centerx += self.speed[0] * time
+
         #añadida colisión con pala de CPU
         if pygame.sprite.collide_rect(self, pala_cpu):
             self.speed[0] = -self.speed[0]
             self.rect.centerx += self.speed[0] * time
+
+        return puntos
 
 
 class Pala(pygame.sprite.Sprite):
@@ -217,6 +236,8 @@ def main():
     # la ultima actualización de la pelota y con ello poder situarla en el espacio.
     clock = pygame.time.Clock()
 
+    puntos = [0, 0]
+
     while True:  # bucle de juego Game Loop
         # Ahora necesitamos saber cuanto tiempo pasa cada vez que se ejecuta
         # una interección del bucle, para ello dentro del bucle ponemos como primera línea:
@@ -229,7 +250,8 @@ def main():
                 sys.exit(0)
 
         # actualizar la posición de la bola, pala del jugador y de la cpu antes de repintar
-        bola.actualizar(time, pala_jug, pala_cpu)
+        #actualizar también los puntos
+        puntos=bola.actualizar(time, pala_jug, pala_cpu, puntos)
         pala_jug.mover(time, keys)
         pala_cpu.ia(time, bola)
 
