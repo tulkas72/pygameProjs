@@ -89,6 +89,49 @@ class Bola(pygame.sprite.Sprite):
             self.speed[1] = -self.speed[1]
             self.rect.centery += self.speed[1] * time
 
+
+class Pala(pygame.sprite.Sprite):
+    """
+    Como vemos es casi idéntica a bola, salvo que ahora le pasamos el parámetro x para usarlo en self.rect.centerx,
+    esto es debido a que necesitamos dos palas una en la parte izquierda y otra en la derecha, con el parámetro x
+    definimos a que altura del eje x queremos colocar el Sprite.
+
+    Otro cambio es la velocidad, como la pala del Pong solo se mueve en el eje y no definimos velocidad para el eje x.
+    """
+    def __init__(self, x):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = load_image("images/pala.png")
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.centery = HEIGHT / 2
+        self.speed = 0.5
+
+    def mover(self, time, keys):
+        """
+        Recibe los parámetros self y time como el método actualizar de la bola y además recibe el parámetro keys que
+        luego definiremos y que es una lista con el valor booleano de las teclas pulsadas.
+
+        La línea 2 y 5 comprueban que la parte superior (en el caso de la linea 2) de la pala sea mayor o igual a 0 y
+        que la parte inferior de la pala (línea 5) sea menor o igual que que la altura de la ventana. Resumiendo
+        comprueban que la pala no se sale de la ventana.
+
+        La línea 3 comprueba si la constante K_UP de keys es 1, lo que querría decir que tenemos presionada la tecla
+        de la flecha hacia arriba del teclado.
+
+        La línea 5 en caso de tener la tecla presionada disminuye el valor de centery haciendo que la pala se mueva
+        hacia arriba.
+
+        La línea 6 y 7 hacen lo mismo, pero para abajo y aumentando el valor de centery.
+        :param time:
+        :param keys:
+        :return:
+        """
+        if self.rect.top >= 0:
+            if keys[K_UP]:
+                self.rect.centery -= self.speed * time
+        if self.rect.bottom <= HEIGHT:
+            if keys[K_DOWN]:
+                self.rect.centery += self.speed * time
 # ---------------------------------------------------------------------
 
 # Funciones
@@ -116,6 +159,7 @@ def main():
     pygame.display.set_caption("Pruebas Pygame")  # crear y abrir la ventana
     background_image = load_image('images/fondo_pong.png')  # cargar imagen
     bola = Bola()
+    pala_jug = Pala(30)
 
     # Ahora vamos a crear un reloj que controle el tiempo del juego, esto es
     # importante para el movimiento, pues sabemos cuanto tiempo a pasado desde
@@ -127,6 +171,7 @@ def main():
         # una interección del bucle, para ello dentro del bucle ponemos como primera línea:
         #60 nos da el "framerate"
         time=clock.tick(60)
+        keys = pygame.key.get_pressed() # controlar pulsación de teclas
         for eventos in pygame.event.get():  # manejo de eventos
             if eventos.type == QUIT:  # pygame.locals.QUIT
                 pygame.quit()
@@ -134,8 +179,10 @@ def main():
 
 
         bola.actualizar(time) #actualizar la posición de la bola antes de repintar
+        pala_jug.mover(time, keys)
         screen.blit(background_image, (0, 0)) # ponerla en la ventana, en la posición x=0,y=0
-        screen.blit(bola.image, bola.rect)
+        screen.blit(bola.image, bola.rect) #dibujar la bola
+        screen.blit(pala_jug.image, pala_jug.rect)#dibujar pala del jugador
         pygame.display.flip()  # actualiza la pantalla para que se muestre la imagen
     return 0
 

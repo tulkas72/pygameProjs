@@ -1,0 +1,11 @@
+
+    Pygame I: Importar e inicializar
+    Pygame II: Creando una ventana
+    Pygame III: Cargar imágenes
+    Pygame IV: Creando Sprites
+    Pygame V: Moviendo Sprites
+    Pygame VI: Control del teclado
+    Pygame VII: Colisiones
+    Pygame VIII: Inteligencia artificial
+    Pygame IX: Sistema de puntuación
+    Pygame X: Fuentes tipográficas
