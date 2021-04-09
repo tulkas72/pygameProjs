@@ -3,6 +3,7 @@
 # -*- coding: utf-8 -*-
 
 # Módulos
+import datetime
 import os
 import sys
 import pygame
@@ -207,11 +208,12 @@ class Pala(pygame.sprite.Sprite):
             op = le
 
         #  if ball.speed[0] >= 0 and ball.rect.centerx >= WIDTH / 2:
+        random.seed(datetime.datetime.now())
         if op(ball.speed[0], 0) and op(ball.rect.centerx, WIDTH/2):
             if self.rect.centery < ball.rect.centery:
-                self.rect.centery += self.speed * time - random.randint(0,7) #atontar un poco a la "IA"
+                self.rect.centery += self.speed * time - random.randint(-5,6) #atontar un poco a la "IA"
             if self.rect.centery > ball.rect.centery:
-                self.rect.centery -= self.speed * time + random.randint(0,7) #atontar un poco a la "IA"
+                self.rect.centery -= self.speed * time + random.randint(-6,5) #atontar un poco a la "IA"
 # ---------------------------------------------------------------------
 
 # Funciones
