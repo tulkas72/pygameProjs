@@ -18,3 +18,8 @@
     Pygame XIII: - Que la pala del jugador se alargue si no es muy hábil o
                  - Que la bola vaya más despacio cuando se mueva hacia él
                  - O ambas
+
+    Pygame XIV: - Que la IA no gane siempre
+    Pygame XV:  - Que jueguen dos IA
+    Pygame XVI: - Sonidos para los rebotes
+                - Música de fondo
