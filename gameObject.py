@@ -201,6 +201,14 @@ class Pala(pygame.sprite.Sprite):
                 self.rect.centery += self.speed * time
             if self.rect.centery > ball.rect.centery:
                 self.rect.centery -= self.speed * time
+
+    def ia2(self,time, ball):
+        if ball.speed[0] < 0 and ball.rect.centerx < WIDTH / 2:
+            if self.rect.centery > ball.rect.centery:
+                self.rect.centery -= self.speed * time
+            if self.rect.centery <= ball.rect.centery:
+                self.rect.centery += self.speed * time
+
 # ---------------------------------------------------------------------
 
 # Funciones
@@ -286,6 +294,7 @@ def main():
         #actualizar también los puntos
         puntos=bola.actualizar(time, pala_jug, pala_cpu, puntos)
         pala_jug.mover(time, keys)
+        #pala_jug.ia2(time, bola)
         pala_cpu.ia(time, bola)
 
         # Con la función texto() poner texto es muy fácil, vamos a utilizarla para mostrar nuestras puntuaciones,
